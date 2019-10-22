@@ -6,7 +6,7 @@ struct Organism {
     Organism(int id, std::ostream* logger);
     ~Organism();
 
-    int id;
+    unsigned int id;
     std::ostream* logger;
 private:
     void birth_message();

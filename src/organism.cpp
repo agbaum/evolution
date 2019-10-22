@@ -1,18 +1,17 @@
 #include "organism.hpp"
-#include <iostream>
-
-
-using namespace std;
 
 Organism::Organism(int id) {
     this->id = id;
-    this->logger = &cout;
+    this->logger = &std::cout;
     this->birth_message();
 }
 
 Organism::Organism(int id, std::ostream* logger) {
     this->id = id;
-    this->logger = logger;
+    if (logger == NULL)
+        this->logger = &std::cout;
+    else
+        this->logger = logger;
     this->birth_message();
 }
 

@@ -10,7 +10,7 @@ TEST_CASE("organism lifecycle"){
     Organism* org = new Organism(5, &ss);
 
     SECTION("id"){
-        REQUIRE(org.id == 5);
+        REQUIRE(org->id == 5);
     }
 
 
