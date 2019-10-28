@@ -7,12 +7,12 @@
 
 TEST_CASE("organism lifecycle"){
     std::ostringstream ss;
-    Organism* org = new Organism(5, &ss);
+    Environment env{&ss};
+    Organism* org = new Organism(5, &env);
 
     SECTION("id"){
         REQUIRE(org->id == 5);
     }
-
 
     SECTION("birth log"){
         const auto birth_message = ss.str();
@@ -30,3 +30,4 @@ TEST_CASE("organism lifecycle"){
         REQUIRE(death_message == "Death: 5\n");
     }
 }
+

@@ -1,17 +1,9 @@
 #include "organism.hpp"
 
-Organism::Organism(int id) {
+Organism::Organism(int id, Environment* env) {
     this->id = id;
-    this->logger = &std::cout;
-    this->birth_message();
-}
+    this->env = env;
 
-Organism::Organism(int id, std::ostream* logger) {
-    this->id = id;
-    if (logger == NULL)
-        this->logger = &std::cout;
-    else
-        this->logger = logger;
     this->birth_message();
 }
 
@@ -19,12 +11,17 @@ Organism::~Organism(){
     this->death_message();
 }
 
+void Organism::request_food(){
+    std::unique_ptr<Food> food = env->make_food();
+    this->stomach.push(std::move(food));
+}
+
 // logs the birth message of an organism
 void Organism::birth_message() {
-    *this->logger << "Birth: " << id << "\n";
+    *this->env->logger << "Birth: " << id << "\n";
 }
 
 // logs the death message of an organism
 void Organism::death_message() {
-    *this->logger << "Death: " << id << "\n";
+    *this->env->logger << "Death: " << id << "\n";
 }
