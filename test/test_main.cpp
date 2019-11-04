@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
+#include <thread>
 
 TEST_CASE("base_pass") {
     std::cout << "hello test!";
@@ -24,4 +26,10 @@ TEST_CASE("test iostream") {
 
     REQUIRE(check_one == "Check one\n");
     REQUIRE(check_two == "Check two\n");
+}
+
+TEST_CASE("threads") {
+    std::ostringstream log;
+    
+
 }

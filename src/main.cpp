@@ -1,7 +1,9 @@
 #include <iostream>
-
-using namespace std;
+#include "environment.hpp"
 
 int main() {
-    cout << "Hello world!\n";
+    Environment env(&std::cout);
+    env.add_organisms(4);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
 }
+
