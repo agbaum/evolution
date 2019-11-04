@@ -38,3 +38,9 @@
         * Upon acquiring the Organism lock, one must check if the Organism is still alive before doing anything else
 
 * When the Organism dies, remove it from the Environment, but don't destroy it until all threads have finished.
+
+
+* A better (generational) id system:
+    * IDs are stored as byte strings of the format AA_BB_CC,
+    where CC is the ID of the organism, BB is the ID of its parent, and AA is the ID of its grandparent.
+    * Each organism (and the environment, for the initial population) has a progeny counter, maybe stored as a byte string, which is incremented to generate the id of its next child. 
