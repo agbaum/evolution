@@ -1,4 +1,5 @@
 #include "organism.hpp"
+#include <sstream>
 
 
 Organism::Organism(int id, Environment* env) {
@@ -86,8 +87,9 @@ void Organism::hunger_loop() {
                 // take the food
                 std::unique_ptr<Food> recieved_food = std::move(this->stomach.front());
                 this->stomach.pop();
-                std::lock_guard<std::mutex> guard { this->env->log_lock };
-                *this->env->logger << "Food Consumed: " << id << ", " << recieved_food->id << "\n";
+                std::ostringstream logss;
+                logss << "Food Consumed: " << id << ", " << recieved_food->id;
+                this->env->log(logss.str());
             }
         }
         i++;
@@ -99,13 +101,14 @@ void Organism::hunger_loop() {
 
 // logs the birth message of an organism
 void Organism::birth_message() {
-    std::lock_guard<std::mutex> log_guard { this->env->log_lock };
-    *this->env->logger << "Birth: " << id << "\n";
+    std::ostringstream logss;
+    logss << "Birth: " << id;
+    this->env->log(logss.str());
 }
 
 // logs the death message of an organism
 void Organism::death_message() {
-    std::lock_guard<std::mutex> log_guard { this->env->log_lock };
-    *this->env->logger << "Death: " << id << "\n";
-}
+    std::ostringstream logss;
+    logss << "Death: " << id;
+    this->env->log(logss.str());}
 

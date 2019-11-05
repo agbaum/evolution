@@ -1,7 +1,9 @@
 #include "environment.hpp"
 #include "organism.hpp"
+#include <sstream>
 
 Environment::Environment(std::ostream* logger) {
+    clock_start = std::chrono::high_resolution_clock::now();
     if (logger == NULL)
         this->logger = &std::cout;
     else
@@ -21,9 +23,14 @@ Environment::~Environment() {
     for (auto &&i : this->threads) { 
         i.join();
     }
-    *this->logger << "done\n";
+    this->log("done");
 }
 
+void Environment::log(std::string s){
+    auto time = std::chrono::high_resolution_clock::now() - this->clock_start;
+    std::lock_guard<std::mutex> log_guard { this->log_lock };
+    *this->logger << time.count() << ": " << s << "\n";
+}
 
 void Environment::add_organisms(unsigned int n) {
     std::lock_guard<std::mutex> guard { this->orgs_lock };
@@ -46,8 +53,9 @@ void Environment::add_organisms(unsigned int n) {
 std::unique_ptr<Food> Environment::make_food() {
     std::unique_ptr<Food> food { new Food(this->food_counter) };
     this->food_counter++;
-    std::lock_guard<std::mutex> log_guard { this->log_lock };
-    *this->logger << "Food Made: " << food->id << "\n";
+    std::ostringstream logss;
+    logss << "Food Made: " << food->id;
+    this->log(logss.str());
     return food;
 }
 
