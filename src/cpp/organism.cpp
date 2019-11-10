@@ -110,5 +110,6 @@ void Organism::birth_message() {
 void Organism::death_message() {
     std::ostringstream logss;
     logss << "Death: " << id;
-    this->env->log(logss.str());}
+    this->env->log(logss.str());
+}
 
