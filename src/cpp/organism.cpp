@@ -1,5 +1,6 @@
 #include "organism.hpp"
 #include <sstream>
+#include <chrono>
 
 
 Organism::Organism(int id, Environment* env) {
@@ -93,7 +94,8 @@ void Organism::hunger_loop() {
             }
         }
         i++;
-
+        std::this_thread::sleep_for(std::chrono::milliseconds(
+            this->hunger_dist(this->rand_gen)));
     }
 
     this->close_thread();
