@@ -19,7 +19,7 @@ with open("log.txt") as log_file:
 df = pd.DataFrame(org_log, columns = ['time', 'n_orgs'])
 
 
-print(df)
+# print(df)
 
 p = p9.ggplot(df, p9.aes('time', 'n_orgs')) + p9.geom_point()
 p.save('n_orgs.png')

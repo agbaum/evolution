@@ -7,8 +7,10 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <windows.h>
 
 struct Organism;
+struct Logger;
 
 struct Food {
     Food(unsigned int id);
@@ -16,21 +18,20 @@ struct Food {
 };
 
 struct Environment {
-    Environment(std::ostream* logger);
+    Environment(std::ostream* log_out);
     ~Environment();
 
     std::map<unsigned int, Organism*> orgs;
-    std::ostream* logger;
+    Logger* logger;
     bool shutdown; // true if mid-destruct
     std::vector<std::thread> threads; // protected by orgs_lock and shutdown
 
-    std::chrono::high_resolution_clock::time_point clock_start;
+    LARGE_INTEGER clock_start;
 
     std::mutex orgs_lock;
     std::mutex log_lock;
     std::mutex food_lock;
 
-    void log(std::string s);
     void add_organisms(unsigned int n);
     // void kill_organism(unsigned int id);
 

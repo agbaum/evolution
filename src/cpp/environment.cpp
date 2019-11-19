@@ -1,13 +1,14 @@
 #include "environment.hpp"
 #include "organism.hpp"
+#include "logger.hpp"
 #include <sstream>
 
-Environment::Environment(std::ostream* logger) {
-    clock_start = std::chrono::high_resolution_clock::now();
-    if (logger == NULL)
-        this->logger = &std::cout;
+Environment::Environment(std::ostream* log_out) {
+    QueryPerformanceCounter(&this->clock_start);
+    if (log_out == NULL)
+         this->logger = new Logger(&std::cout, this);
     else
-        this->logger = logger;
+        this->logger = new Logger(log_out, this);
     this->food_counter = 0;
     this->shutdown = false;
 }
@@ -23,23 +24,25 @@ Environment::~Environment() {
     for (auto &&i : this->threads) { 
         i.join();
     }
-    this->log("done");
+    this->logger->log("done");
+    delete this->logger;
 }
 
-void Environment::log(std::string s){
-    auto time = std::chrono::high_resolution_clock::now() - this->clock_start;
-    std::lock_guard<std::mutex> log_guard { this->log_lock };
-    *this->logger << time.count() << ": " << s << "\n";
-}
 
 void Environment::add_organisms(unsigned int n) {
     std::lock_guard<std::mutex> guard { this->orgs_lock };
     for (size_t i = 0; i < n; i++) {
         this->orgs.insert({i, new Organism(i, this)});
         Organism* org = this->orgs.at(i);
-        std::lock_guard<std::mutex> org_lock { org->org_lock };
+        // lock all orgs until everyone is made
+        org->org_lock.lock();
         this->threads.emplace_back( &Organism::main_loop, org );
         this->threads.emplace_back( &Organism::hunger_loop, org );
+    }
+
+    // go through and unlock all added orgs
+    for (size_t i = 0; i < n; i++) {
+        this->orgs.at(i)->org_lock.unlock();
     }
 }
 
@@ -55,7 +58,7 @@ std::unique_ptr<Food> Environment::make_food() {
     this->food_counter++;
     std::ostringstream logss;
     logss << "Food Made: " << food->id;
-    this->log(logss.str());
+    this->logger->log(logss.str());
     return food;
 }
 

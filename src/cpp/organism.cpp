@@ -1,4 +1,5 @@
 #include "organism.hpp"
+#include "logger.hpp"
 #include <sstream>
 #include <chrono>
 
@@ -66,6 +67,8 @@ void Organism::hunger_loop() {
     
     int i = 0;
     while(1) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(
+            this->hunger_dist(this->rand_gen)));
         this->env->log_lock.lock();
         // *this->env->logger << "Org " << this->id << ", Hunger It " << i << "\n";
         this->env->log_lock.unlock();
@@ -90,12 +93,10 @@ void Organism::hunger_loop() {
                 this->stomach.pop();
                 std::ostringstream logss;
                 logss << "Food Consumed: " << id << ", " << recieved_food->id;
-                this->env->log(logss.str());
+                this->env->logger->log(logss.str());
             }
         }
         i++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(
-            this->hunger_dist(this->rand_gen)));
     }
 
     this->close_thread();
@@ -105,13 +106,13 @@ void Organism::hunger_loop() {
 void Organism::birth_message() {
     std::ostringstream logss;
     logss << "Birth: " << id;
-    this->env->log(logss.str());
+    this->env->logger->log(logss.str());
 }
 
 // logs the death message of an organism
 void Organism::death_message() {
     std::ostringstream logss;
     logss << "Death: " << id;
-    this->env->log(logss.str());
+    this->env->logger->log(logss.str());
 }
 
