@@ -49,10 +49,6 @@ void Organism::close_thread() {
 void Organism::main_loop() {
     int i = 0;
     while(1) {
-        this->env->log_lock.lock();
-        // *this->env->logger << "Org " << this->id << ", Main It " << i << "\n";
-        this->env->log_lock.unlock();
-
         std::lock_guard<std::mutex> guard { this->org_lock };
         if (this->dead)
             break;
@@ -69,9 +65,6 @@ void Organism::hunger_loop() {
     while(1) {
         std::this_thread::sleep_for(std::chrono::milliseconds(
             this->hunger_dist(this->rand_gen)));
-        this->env->log_lock.lock();
-        // *this->env->logger << "Org " << this->id << ", Hunger It " << i << "\n";
-        this->env->log_lock.unlock();
         std::lock_guard<std::mutex> guard { this->org_lock };
         if (this->dead)
             break;

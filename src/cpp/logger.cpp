@@ -19,9 +19,7 @@ void Logger::log(std::string s) {
     this->buffer += "\n";
 
     if (this->buffer.length() > BUF_SIZE - BUF_BUFFER){
-        std::cout << "flushing\n";
         this->flush();
-
     } 
     //something about flushing
 }

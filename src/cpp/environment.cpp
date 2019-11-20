@@ -30,30 +30,25 @@ Environment::~Environment() {
 
 
 void Environment::add_organisms(unsigned int n) {
-    std::lock_guard<std::mutex> guard { this->orgs_lock };
+    std::lock_guard<std::mutex> org_guard { this->orgs_lock };
+    this->food_lock.lock();
+
+    // start food main loops (can't start getting food until everyone starts)
     for (size_t i = 0; i < n; i++) {
         this->orgs.insert({i, new Organism(i, this)});
         Organism* org = this->orgs.at(i);
-        // lock all orgs until everyone is made
-        org->org_lock.lock();
         this->threads.emplace_back( &Organism::main_loop, org );
-        this->threads.emplace_back( &Organism::hunger_loop, org );
     }
+    this->food_lock.unlock();
 
-    // go through and unlock all added orgs
+    // start hunger loops
     for (size_t i = 0; i < n; i++) {
-        this->orgs.at(i)->org_lock.unlock();
+        this->threads.emplace_back( &Organism::hunger_loop, this->orgs.at(i) );
     }
 }
 
-// // must have organism's 
-// void Environment::kill_organism(unsigned int id) {
-//     Organism* org = this->orgs.at(id);
-    
-//     this->orgs.erase(id);
-// }
-
 std::unique_ptr<Food> Environment::make_food() {
+    std::lock_guard<std::mutex> food_guard { this->food_lock };
     std::unique_ptr<Food> food { new Food(this->food_counter) };
     this->food_counter++;
     std::ostringstream logss;
@@ -61,19 +56,6 @@ std::unique_ptr<Food> Environment::make_food() {
     this->logger->log(logss.str());
     return food;
 }
-
-// void Environment::require_food(unsigned int id) {
-//     Organism* org = this->orgs.at(id);
-//     if(org->stomach.empty()) {
-//         kill_organism(id);
-//     } else {
-//         if(!org->stomach.front())
-//             kill_organism(id);
-//         std::unique_ptr<Food> recieved_food = std::move(this->orgs.at(id)->stomach.front());
-//         this->orgs.at(id)->stomach.pop();
-//         *this->logger << "Food Consumed: " << id << ", " << recieved_food->id << "\n";
-//     }
-// }
 
 Food::Food(unsigned int id) {
     this->id = id;
