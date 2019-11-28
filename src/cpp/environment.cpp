@@ -3,29 +3,17 @@
 #include "logger.hpp"
 #include <sstream>
 
-Environment::Environment(std::ostream* log_out) {
+Environment::Environment(std::ostream* log_out, int hunger_min, int hunger_max) :
+       logger { log_out, this } {
     QueryPerformanceCounter(&this->clock_start);
-    if (log_out == NULL)
-         this->logger = new Logger(&std::cout, this);
-    else
-        this->logger = new Logger(log_out, this);
     this->food_counter = 0;
     this->shutdown = false;
 }
 
 Environment::~Environment() {    
-    this->orgs_lock.lock();
-    this->shutdown = true;
-    for (auto &&o : this->orgs) {
-        std::lock_guard<std::mutex> org_guard { o.second->org_lock };
-        o.second->dead = true;
+    if (!this->shutdown) {
+        this->stop();
     }
-    this->orgs_lock.unlock();
-    for (auto &&i : this->threads) { 
-        i.join();
-    }
-    this->logger->log("done");
-    delete this->logger;
 }
 
 
@@ -47,13 +35,27 @@ void Environment::add_organisms(unsigned int n) {
     }
 }
 
-std::unique_ptr<Food> Environment::make_food() {
+void Environment::stop() {
+    this->orgs_lock.lock();
+    this->shutdown = true;
+    for (auto &&o : this->orgs) {
+        std::lock_guard<std::mutex> org_guard { o.second->org_lock };
+        o.second->dead = true;
+    }
+    this->orgs_lock.unlock();
+    for (auto &&i : this->threads) { 
+        i.join();
+    }
+    this->logger.log("done");
+}
+
+std::unique_ptr<Food> Environment::make_food(int org_id) {
     std::lock_guard<std::mutex> food_guard { this->food_lock };
     std::unique_ptr<Food> food { new Food(this->food_counter) };
     this->food_counter++;
     std::ostringstream logss;
-    logss << "Food Made: " << food->id;
-    this->logger->log(logss.str());
+    logss << "Food Made: " << org_id << ": " << food->id;
+    this->logger.log(logss.str());
     return food;
 }
 

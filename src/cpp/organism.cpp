@@ -4,7 +4,8 @@
 #include <chrono>
 
 
-Organism::Organism(int id, Environment* env) {
+Organism::Organism(int id, Environment* env):
+        hunger_dist {env->hunger_min, env->hunger_max} {
     this->id = id;
     this->env = env;
     this->remaining_threads = 2;
@@ -20,7 +21,7 @@ Organism::~Organism() {
 // must have org_lock locked before calling this
 void Organism::request_food() {
     this->org_lock.unlock();
-    std::unique_ptr<Food> food = env->make_food();
+    std::unique_ptr<Food> food = env->make_food(this->id);
     this->org_lock.lock();
     this->stomach.push(std::move(food));
 }
@@ -49,6 +50,9 @@ void Organism::close_thread() {
 void Organism::main_loop() {
     int i = 0;
     while(1) {
+        std::ostringstream logss;
+        logss << "Main loop: " << id << ": " << i;
+        this->env->logger.log(logss.str());
         std::lock_guard<std::mutex> guard { this->org_lock };
         if (this->dead)
             break;
@@ -63,7 +67,7 @@ void Organism::hunger_loop() {
     
     int i = 0;
     while(1) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(
+        std::this_thread::sleep_for(std::chrono::microseconds(
             this->hunger_dist(this->rand_gen)));
         std::lock_guard<std::mutex> guard { this->org_lock };
         if (this->dead)
@@ -86,7 +90,7 @@ void Organism::hunger_loop() {
                 this->stomach.pop();
                 std::ostringstream logss;
                 logss << "Food Consumed: " << id << ", " << recieved_food->id;
-                this->env->logger->log(logss.str());
+                this->env->logger.log(logss.str());
             }
         }
         i++;
@@ -99,13 +103,13 @@ void Organism::hunger_loop() {
 void Organism::birth_message() {
     std::ostringstream logss;
     logss << "Birth: " << id;
-    this->env->logger->log(logss.str());
+    this->env->logger.log(logss.str());
 }
 
 // logs the death message of an organism
 void Organism::death_message() {
     std::ostringstream logss;
     logss << "Death: " << id;
-    this->env->logger->log(logss.str());
+    this->env->logger.log(logss.str());
 }
 

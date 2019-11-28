@@ -1,10 +1,15 @@
 #include "logger.hpp"
+#include "environment.hpp"
 
 #include <string>
 #include <iostream>
 
 Logger::Logger(std::ostream* out, Environment* env) {
-    this->out = out;
+    if (this->out == NULL) {
+        this->out = &std::cout;
+    } else {
+        this->out = out;
+    }
     this->buffer.reserve(BUF_SIZE);
     this->env = env;
 }
